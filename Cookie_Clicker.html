@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ultimate Prettified Cookie Clicker</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: linear-gradient(135deg, #ff9a9e, #fad0c4, #fbc2eb);
+            background-size: 400% 400%;
+            animation: gradientBG 20s ease infinite;
+            color: #fff;
+        }
+        @keyframes gradientBG {
+            0%{background-position:0% 50%}
+            50%{background-position:100% 50%}
+            100%{background-position:0% 50%}
+        }
+
+        h1 { margin-top: 20px; font-size: 48px; text-shadow: 2px 2px 5px #000; }
+
+        /* Sharp cookie counter */
+        #score {
+            font-size: 32px;
+            margin: 10px;
+            text-shadow: 2px 2px 4px #000;
+            color: #fff; /* solid color for clarity */
+        }
+
+        /* Main cookie */
+        #cookie {
+            font-size: 220px;
+            cursor: pointer;
+            user-select: none;
+            display: inline-block;
+            transition: transform 0.1s;
+            text-shadow: 3px 3px 6px #000;
+        }
+
+        /* Golden cookie as a div with chocolate chips */
+        #goldenCookie {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #ffeb3b, #fbc02d);
+            box-shadow: 0 0 15px gold;
+            display: none;
+            cursor: pointer;
+        }
+        #goldenCookie::before, #goldenCookie::after {
+            content: '';
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: #795548; /* chocolate chip color */
+        }
+        #goldenCookie::before { top: 20px; left: 30px; }
+        #goldenCookie::after { top: 60px; left: 50px; }
+
+        /* Shop panel */
+        #shop {
+            position: fixed;
+            top: 50%;
+            left: -360px;
+            width: 320px;
+            height: 80%;
+            overflow-y: auto;
+            transform: translateY(-50%);
+            background: linear-gradient(to bottom, #ff7e5f, #feb47b);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 5px 5px 20px #000;
+            transition: left 0.5s;
+        }
+
+        /* Upgrade buttons */
+        .upgrade {
+            margin: 10px 0;
+            padding: 12px 20px;
+            font-size: 18px;
+            cursor: pointer;
+            border: none;
+            border-radius: 12px;
+            width: 90%;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-weight: bold;
+        }
+        .upgrade:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 15px #fff;
+        }
+
+        .category { font-size: 20px; margin: 15px 0 5px; text-shadow: 2px 2px 4px #000; }
+
+        #shopToggle {
+            position: fixed;
+            top: 50%;
+            left: 0;
+            transform: translate(-50%, -50%);
+            background: gold;
+            color: #000;
+            padding: 12px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 24px;
+            box-shadow: 2px 2px 10px #000;
+        }
+    </style>
+</head>
+<body>
+
+<h1>🍪 Ultimate Cookie Clicker</h1>
+<div id="cookie">🍪</div>
+<p id="score">Cookies: 0</p>
+
+<div id="shop">
+    <div class="category">Click Upgrades</div>
+    <button class="upgrade" data-cost="50" data-type="click" data-value="1" style="background:#ffd700;">+1 Cookie/Click (50)</button>
+    <button class="upgrade" data-cost="250" data-type="click" data-value="2" style="background:#ffb14e;">+2 Cookie/Click (250)</button>
+    <button class="upgrade" data-cost="1000" data-type="click" data-value="5" style="background:#ff7f50;">+5 Cookie/Click (1000)</button>
+    <button class="upgrade" data-cost="5000" data-type="click" data-value="10" style="background:#ff6347;">+10 Cookie/Click (5000)</button>
+
+    <div class="category">Auto Clickers</div>
+    <button class="upgrade" data-cost="100" data-type="auto" data-value="1" style="background:#7fffd4;">Auto-Clicker +1/sec (100)</button>
+    <button class="upgrade" data-cost="500" data-type="auto" data-value="2" style="background:#40e0d0;">Auto-Clicker +2/sec (500)</button>
+    <button class="upgrade" data-cost="2000" data-type="auto" data-value="5" style="background:#20b2aa;">Auto-Clicker +5/sec (2000)</button>
+    <button class="upgrade" data-cost="10000" data-type="auto" data-value="10" style="background:#008080;">Auto-Clicker +10/sec (10000)</button>
+
+    <div class="category">Special Upgrades</div>
+    <button class="upgrade" data-cost="10000" data-type="click" data-value="50" style="background:#ff69b4;">Mega Click +50 (10000)</button>
+    <button class="upgrade" data-cost="50000" data-type="auto" data-value="50" style="background:#ff1493;">Mega Auto +50/sec (50000)</button>
+    <button class="upgrade" data-cost="100000" data-type="click" data-value="100" style="background:#8a2be2;">Ultra Click +100 (100000)</button>
+</div>
+
+<div id="shopToggle">🛒</div>
+<div id="goldenCookie"></div>
+
+<audio id="clickSound" src="https://www.soundjay.com/button/sounds/button-16.mp3"></audio>
+<audio id="buySound" src="https://www.soundjay.com/button/sounds/button-3.mp3"></audio>
+<audio id="goldSound" src="https://www.soundjay.com/button/sounds/button-09.mp3"></audio>
+<audio id="bgMusic" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" loop autoplay></audio>
+
+<script>
+let cookies = 0;
+let cookiesPerClick = 1;
+let cookiesPerSecond = 0;
+
+const cookie = document.getElementById('cookie');
+const scoreEl = document.getElementById('score');
+const shop = document.getElementById('shop');
+const shopToggle = document.getElementById('shopToggle');
+const goldenCookie = document.getElementById('goldenCookie');
+
+const clickSound = document.getElementById('clickSound');
+const buySound = document.getElementById('buySound');
+const goldSound = document.getElementById('goldSound');
+
+// Cookie click
+cookie.addEventListener('click', () => {
+    cookies += cookiesPerClick;
+    updateScore();
+    clickSound.currentTime = 0;
+    clickSound.play();
+    cookie.style.transform = 'scale(1.2) rotate(10deg)';
+    setTimeout(() => cookie.style.transform='scale(1) rotate(0deg)', 100);
+});
+
+function updateScore() {
+    scoreEl.innerText = `Cookies: ${cookies}`;
+}
+
+// Toggle shop
+let shopOpen = false;
+shopToggle.addEventListener('click', () => {
+    shop.style.left = shopOpen ? '-360px' : '50px';
+    shopOpen = !shopOpen;
+});
+
+// Upgrade buttons
+document.querySelectorAll('.upgrade').forEach(button => {
+    button.addEventListener('click', () => {
+        const cost = parseInt(button.dataset.cost);
+        const type = button.dataset.type;
+        const value = parseInt(button.dataset.value);
+        if(cookies >= cost){
+            cookies -= cost;
+            if(type === 'click') cookiesPerClick += value;
+            if(type === 'auto') cookiesPerSecond += value;
+            updateScore();
+            buySound.play();
+        } else {
+            alert("Not enough cookies!");
+        }
+    });
+});
+
+// Auto-clicker
+setInterval(() => {
+    cookies += cookiesPerSecond;
+    updateScore();
+}, 1000);
+
+// Glitchy effect
+setInterval(() => {
+    if(Math.random() < 0.05){
+        cookie.style.fontSize = `${180 + Math.random()*80}px`;
+        cookie.style.transform = `rotate(${Math.random()*360}deg) scale(${1 + Math.random()*0.2})`;
+    } else {
+        cookie.style.fontSize = '220px';
+        cookie.style.transform = 'rotate(0deg) scale(1)';
+    }
+}, 200);
+
+// Golden cookie
+function spawnGoldenCookie() {
+    goldenCookie.style.display = 'block';
+    const y = Math.random() * (window.innerHeight - 100);
+    goldenCookie.style.top = y + 'px';
+    goldenCookie.style.left = '-100px';
+
+    let pos = -100;
+    const moveInterval = setInterval(() => {
+        pos += 5;
+        goldenCookie.style.left = pos + 'px';
+        if(pos > window.innerWidth){
+            goldenCookie.style.display = 'none';
+            clearInterval(moveInterval);
+        }
+    }, 20);
+
+    goldenCookie.onclick = () => {
+        cookies *= 10;
+        updateScore();
+        goldSound.play();
+        goldenCookie.style.display = 'none';
+        clearInterval(moveInterval);
+    };
+}
+
+// Spawn golden cookie every 90 seconds
+setInterval(spawnGoldenCookie, 90000);
+</script>
+
+</body>
+</html>
